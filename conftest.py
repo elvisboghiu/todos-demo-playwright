@@ -8,12 +8,15 @@ from pages.todo_page import TodoPage
 @pytest.fixture(scope="session")
 def browser() -> Browser:
     """Provide a Playwright browser instance for the test session.
-    
+
     Yields:
         Browser: Playwright browser instance
     """
+    import os
     playwright = sync_playwright().start()
-    browser = playwright.chromium.launch()
+    headless = os.environ.get("PLAYWRIGHT_HEADLESS", "1") != "0"
+    slow_mo = int(os.environ.get("PLAYWRIGHT_SLOW_MO", "0"))
+    browser = playwright.chromium.launch(headless=headless, slow_mo=slow_mo)
     yield browser
     browser.close()
     playwright.stop()

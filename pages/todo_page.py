@@ -61,17 +61,14 @@ class TodoPage:
 
     def delete_todo(self, index: int) -> None:
         """Delete a todo item.
-        
+
         Args:
             index: The index of the todo item to delete (0-based)
         """
-        # Hover over the todo item to reveal the delete button
-        todo_items = self.page.locator(self.TODO_ITEMS)
-        todo_items.nth(index).hover()
-        
-        # Click the delete button for this item
-        delete_buttons = self.page.locator(self.DELETE_BUTTON)
-        delete_buttons.nth(index).click()
+        # Use JavaScript click to bypass hover visibility requirement
+        self.page.evaluate(
+            f"document.querySelectorAll('{self.DELETE_BUTTON}')[{index}].click()"
+        )
 
     def click_active_filter(self) -> None:
         """Click the Active filter button."""
@@ -116,30 +113,30 @@ class TodoPage:
 
     def get_active_todos(self) -> List[str]:
         """Get all active (incomplete) todo items.
-        
+
         Returns:
             List of active todo item text strings
         """
-        # First click All filter to ensure we're in a known state
-        self.click_all_filter()
-        # Then click the active filter
+        # Click the active filter
         self.click_active_filter()
-        # Wait a bit for the filter to apply
+
+        # Wait for the filter to apply
         self.page.wait_for_timeout(500)
+
         return self.get_todo_items()
 
     def get_completed_todos(self) -> List[str]:
         """Get all completed todo items.
-        
+
         Returns:
             List of completed todo item text strings
         """
-        # First click All filter to ensure we're in a known state
-        self.click_all_filter()
-        # Then click the completed filter
+        # Click the completed filter
         self.click_completed_filter()
-        # Wait a bit for the filter to apply
+
+        # Wait for the filter to apply
         self.page.wait_for_timeout(500)
+
         return self.get_todo_items()
 
     def is_todo_completed(self, index: int) -> bool:

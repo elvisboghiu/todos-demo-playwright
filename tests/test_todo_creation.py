@@ -87,3 +87,30 @@ class TestTodoCreationProperties:
         assert len(todos_after) == 1
         # Compare stripped versions since TodoMVC may normalize whitespace
         assert any(todo_text.strip() == todo.strip() for todo in todos_after)
+
+    @given(todo_text=st.text(min_size=1, max_size=100).filter(lambda x: x.strip() and not any(c in x for c in '\r\n\t')))
+    @settings(
+        suppress_health_check=[HealthCheck.function_scoped_fixture],
+        deadline=None,
+        max_examples=10
+    )
+    def test_property_input_field_clears_after_addition(
+        self, todo_page: TodoPage, todo_text: str
+    ) -> None:
+        """Property test: Input field clears after adding a todo.
+
+        **Feature: todomvc-playwright-tests, Property 2: Input Field Clears After Addition**
+        **Validates: Requirements 1.3**
+
+        For any todo item that is successfully added, the input field SHALL be
+        empty after the addition.
+        """
+        # Navigate to fresh page to ensure clean state for each example
+        todo_page.navigate()
+
+        # Add the todo
+        todo_page.add_todo(todo_text)
+
+        # Verify the input field is empty after addition
+        input_value = todo_page.page.input_value(todo_page.INPUT_FIELD)
+        assert input_value == "", f"Input field should be empty but contains: '{input_value}'"

@@ -44,23 +44,57 @@ class TestTodoCompletion:
 
     def test_completed_todo_has_visual_styling(self, todo_page: TodoPage) -> None:
         """Verify visual completion indicator.
-        
+
         Requirements: 4.3, 4.4
         """
         # Add a todo
         todo_text = "Buy groceries"
         todo_page.add_todo(todo_text)
-        
+
         # Get the todo item element before completion
         todo_items = todo_page.page.locator(todo_page.TODO_ITEMS)
         todo_item = todo_items.nth(0)
-        
+
         # Mark it as complete
         todo_page.mark_todo_complete(0)
-        
+
         # Verify the todo item has the 'completed' class
         class_list = todo_item.get_attribute("class")
         assert "completed" in class_list
+
+    def test_completed_item_has_visual_styling_in_completed_filter(self, todo_page: TodoPage) -> None:
+        """Verify completed item shows visual styling in Completed filter view.
+
+        Requirements: 4.4
+        """
+        # Add a todo
+        todo_text = "Buy groceries"
+        todo_page.add_todo(todo_text)
+
+        # Mark it as complete
+        todo_page.mark_todo_complete(0)
+
+        # Verify the checkbox is checked
+        assert todo_page.is_todo_completed(0) is True
+
+        # Switch to Completed filter
+        todo_page.click_completed_filter()
+
+        # Wait for filter to apply
+        try:
+            todo_page.page.locator(todo_page.TODO_LIST).wait_for(state="visible", timeout=2000)
+        except:
+            pass
+
+        # Get the todo item element in the completed view
+        todo_items = todo_page.page.locator(todo_page.TODO_ITEMS)
+        assert todo_items.count() == 1, "Should have exactly one item in Completed filter"
+
+        todo_item = todo_items.nth(0)
+
+        # Verify the todo item has the 'completed' class in Completed filter view
+        class_list = todo_item.get_attribute("class")
+        assert "completed" in class_list, f"Completed item should have 'completed' class, got: {class_list}"
 
 
 from hypothesis import given, strategies as st, settings, HealthCheck
@@ -97,6 +131,9 @@ class TestTodoCompletionProperties:
         # Mark it as complete
         todo_page.mark_todo_complete(0)
         todo_page.page.wait_for_timeout(500)
+
+        # Verify the checkbox is actually checked
+        assert todo_page.is_todo_completed(0) is True, "Checkbox should be checked after marking todo complete"
         
         # Verify the todo appears in the Completed view
         completed_todos = todo_page.get_completed_todos()
